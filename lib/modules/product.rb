@@ -25,13 +25,13 @@ module Resource
   end
 
 module Product
-  # api/products/get_products_by_param
+  # lib/products/get_products_by_param
   # @return [String] with all products data. Use +JSON.parse string+ to convert it to hash
   def get_all_products
     send_get_request('products/get_products', {:user_email => @username, :user_token => @token})
   end
 
-  # api/products/get_products_by_param
+  # lib/products/get_products_by_param
   # @return [String] with products data. Use +JSON.parse string+ to convert it to hash
   def get_products_by_param(param)
     raise('Method get_products_by_param get hash with one pair keys and values') unless param.keys.size == 1
@@ -40,7 +40,7 @@ module Product
   end
   alias_method :get_product_by_param, :get_products_by_param
 
-  # api/products/get_all_plans_by_product
+  # lib/products/get_all_plans_by_product
   # @param param [Hash] with product id
   # Example:
   # {:id => product_id}
@@ -51,7 +51,7 @@ module Product
     send_get_request('products/get_all_plans_by_product', {:user_email => @username, :user_token => @token, :param => param})
   end
 
-  # api/products/add_new_product
+  # lib/products/add_new_product
   # @param params [Hash] with product data.
   # Example:
   # {:product => {:name => "Product_name",
@@ -64,7 +64,7 @@ module Product
     response.body
   end
 
-  # api/products/update_product
+  # lib/products/update_product
   # @param params [Hash] with product data.
   # Example:
   # {:product => {:name => "Product_name",
@@ -78,7 +78,7 @@ module Product
     response.body
   end
 
-  # api/products/delete_product
+  # lib/products/delete_product
   # @param params [Hash] with product id.
   # Example:
   # {:id => "1"}

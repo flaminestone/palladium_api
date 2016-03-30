@@ -1,12 +1,12 @@
 module Resource
 module Result
-  # api/results/get_all_results
+  # lib/results/get_all_results
   # @return [String] with all results data. Use +JSON.parse string+ to convert it to hash
   def get_all_results
     send_get_request('results/get_all_results', {:user_email => @username, :user_token => @token})
   end
 
-  # api/results/get_result_by_param
+  # lib/results/get_result_by_param
   # @return [String] with result_set data. Use +JSON.parse string+ to convert it to hash
   def get_result_by_param(param)
     raise('Method result_set get hash with one pair keys and values') unless param.keys.size == 1
@@ -14,7 +14,7 @@ module Result
     send_get_request('results/get_result_by_param', {:user_email => @username, :user_token => @token, :param => param})
   end
 
-  # api/results/add_new_result
+  # lib/results/add_new_result
   # @param params [Hash] with result data, result_set id and status_id.
   # @return [String] with established data
   # Example:
@@ -30,7 +30,7 @@ module Result
     response.body
   end
 
-  # api/results/update_result
+  # lib/results/update_result
   # @param params [Hash] with result data.
   # Example:
   # {:result => {:message => "Message",
@@ -44,7 +44,7 @@ module Result
     response.body
   end
 
-  # api/results/delete_result
+  # lib/results/delete_result
   # @param params [Hash] with result id.
   # Example:
   # {:id => "1"}

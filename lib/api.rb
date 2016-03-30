@@ -18,14 +18,14 @@ class Api
   attr_reader :uri
 
   def initialize(address, username, token)
-    @uri = URI("http://#{address}/api/")
+    @uri = URI("http://#{address}/lib/")
     @username = username
     @token = token
   end
 end
 
 #Example
-# api = Api.new('localhost:3000', 'flamine@list.ru', '4s8Fq325PJmsD1frVSHx')
-# api.add_new_product('name3', 'version3', 'status3')
-# api.get_all_products
+# lib = Api.new('localhost:3000', 'flamine@list.ru', '4s8Fq325PJmsD1frVSHx')
+# lib.add_new_product('name3', 'version3', 'status3')
+# lib.get_all_products
 # p

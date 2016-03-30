@@ -1,4 +1,4 @@
-require_relative '../../api/api'
+require_relative 'api/api'
 class APIShell
 
   attr_accessor :add_all_suites, :ignore_parameters, :suites_to_add, :search_plan_by_substring, :in_debug

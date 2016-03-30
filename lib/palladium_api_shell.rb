@@ -1,5 +1,5 @@
 require_relative 'api'
-class APIShell
+class PalladiumApiShell
 
   attr_accessor :add_all_suites, :ignore_parameters, :suites_to_add, :search_plan_by_substring, :in_debug
 

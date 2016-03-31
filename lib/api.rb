@@ -25,7 +25,7 @@ class Api
 end
 
 #Example
-# lib = Api.new('localhost:3000', 'flamine@list.ru', '4s8Fq325PJmsD1frVSHx')
+# api = Api.new('localhost:3000', 'flamine@list.ru', '4s8Fq325PJmsD1frVSHx')
 # lib.add_new_product('name3', 'version3', 'status3')
-# lib.get_all_products
+# api.get_all_products
 # p

@@ -1,2 +1,2 @@
 require 'api'
-require 'api_shell'
+require 'palladium_api_shell'

@@ -31,7 +31,7 @@ class PalladiumApiShell
     end
     @run = get_plans_run_by_name(params[:run_name])
     if @run.nil?
-      @run = @api.create_new_run(params[:run_name], '0', @plan.keys.first)
+      @run = create_new_run(params[:run_name], '0', @plan.keys.first)
     end
   end
 

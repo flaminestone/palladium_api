@@ -3,24 +3,52 @@ class PalladiumApiShell
 
   attr_accessor :add_all_suites, :ignore_parameters, :suites_to_add, :search_plan_by_substring, :in_debug
 
-  def initialize(product_name, plan_name, run_name)
-    @api = Api.new('localhost:8080', 'flamine@list.ru', 'hq7MTSB6JPSr31UX6kpN')
-    @product = get_product_data_by_name(product_name)
+  # Main class fo working with palladium
+  # Need to authorization for use. #params must contains :host, :login and :token for it.
+  # :host - is a palladium address, like 'palladium.com'
+  # :login - is a email for singin, like 'palladium@gmail.com'
+  # :token - is secret key for api. You can take in in palladium settings.
+  # Use secure method authorization: create hide folder and 3 files in it: not_host, not_login and not_token.
+  # Write login in not_login file, host in not_host file and token in not_token file. Path to folder take from argument :path, like '/.palladium'
+  # Hackers cant rob you then.
+  # #params must contains :product_name, :plan_name and :run_name for write result
+  def initialize(params = {})
+    if !params[:path].nil?
+      get_params_from_folder params[:path]
+    elsif !((params[:host] || params[:login] || params[:token]).nil?)
+      @host, @login, @token  = params[:host], params[:login], params[:token]
+    else
+      raise("Cant find login, host and token files and arguments. See params: host = #{params[:host]}, login = #{params[:login]}, token = #{params[:token]}, @path = #{params[:path]}")
+    end
+    @api = Api.new(params[:host], params[:login], params[:token])
+    @product = get_product_data_by_name(params[:product_name])
     @product = JSON.parse(@product)
-
-    @plan = get_products_plan_by_name(plan_name)
+    @plan = get_products_plan_by_name(params[:plan_name])
     if @plan.nil?
       @plan = @api.add_new_plan({:plan => {:name => plan_name,
                                            :version => '0'},
                                  :product_id => @product.keys.first})
       @plan = JSON.parse(@plan)
     end
-    @run = get_plans_run_by_name(run_name)
+    @run = get_plans_run_by_name(params[:run_name])
     if @run.nil?
       @run = @api.add_new_run({:run => {:name => run_name,
                                         :version => '0'},
                                :plan_id => @plan.keys.first})
       @run = JSON.parse(@run)
+    end
+  end
+
+  def get_params_from_folder(path)
+    if File.exist?("#{path}/not_host") && File.exist?("#{path}/not_login") && File.exist?("#{path}/not_token")
+      @host = File.read(Dir.home + '/.testrail/not_host').delete("\n")
+      @login = File.read(Dir.home + '/.testrail/not_login').delete("\n")
+      @token = File.read(Dir.home + '/.testrail/not_token').delete("\n")
+    elsif File.exist?("#{path}/host") && File.exist?("#{path}/login") && File.exist?("#{path}/token")
+      puts 'Attention!! You use not secure method!! Rename secret files with "not_" prefix'
+      @host = File.read(Dir.home + '/.testrail/host').delete("\n")
+      @login = File.read(Dir.home + '/.testrail/login').delete("\n")
+      @token = File.read(Dir.home + '/.testrail/token').delete("\n")
     end
   end
 

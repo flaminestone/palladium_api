@@ -1,12 +1,12 @@
 module Resource
 module Plan
-  # lib/plans/get_plans_by_param
+  # api/plans/get_plans_by_param
   # @return [String] with all plans data. Use +JSON.parse string+ to convert it to hash
   def get_all_plans
     send_get_request('plans/get_plans', {:user_email => @username, :user_token => @token})
   end
 
-  # lib/plans/get_plans_by_param
+  # api/plans/get_plans_by_param
   # @return [String] with plans data. Use +JSON.parse string+ to convert it to hash
   def get_plans_by_param(param)
     raise('Method get_plans_by_param get hash with one pair keys and values') unless param.keys.size == 1
@@ -15,7 +15,7 @@ module Plan
   end
   alias_method :get_plan_by_param, :get_plans_by_param
 
-  # lib/plans/add_new_plan
+  # api/plans/add_new_plan
   # @param params [Hash] with plan data and product id.
   # Example:
   # {:plan => {:name => "Plan_name",
@@ -29,7 +29,7 @@ module Plan
     response.body
   end
 
-  # lib/plan/get_all_runs_by_plan
+  # api/plan/get_all_runs_by_plan
   # @param param [Hash] with plan id
   # Example:
   # {:id => plan_id}
@@ -40,7 +40,7 @@ module Plan
     send_get_request('plans/get_all_runs_by_plan', {:user_email => @username, :user_token => @token, :param => param})
   end
 
-  # lib/plans/update_plan
+  # api/plans/update_plan
   # @param params [Hash] with product data.
   # Example:
   # {:plan => {:name => "Plan_name",
@@ -54,7 +54,7 @@ module Plan
     response.body
   end
 
-  # lib/plans/delete_plan
+  # api/plans/delete_plan
   # @param params [Hash] with plan id.
   # Example:
   # {:id => "1"}

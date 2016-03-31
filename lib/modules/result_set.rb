@@ -1,12 +1,12 @@
 module Resource
 module ResultSet
-  # lib/result_sets/get_all_result_sets
+  # api/result_sets/get_all_result_sets
   # @return [String] with all result_sets data. Use +JSON.parse string+ to convert it to hash
   def get_all_result_sets
     send_get_request('result_sets/get_all_result_sets', {:user_email => @username, :user_token => @token})
   end
 
-  # lib/result_sets/get_result_set_by_param
+  # api/result_sets/get_result_set_by_param
   # @return [String] with result_set data. Use +JSON.parse string+ to convert it to hash
   def get_result_set_by_param(param)
     raise('Method result_set get hash with one pair keys and values') unless param.keys.size == 1
@@ -15,7 +15,7 @@ module ResultSet
   end
   alias_method :get_result_sets_by_param, :get_result_set_by_param
 
-  # lib/result_sets/add_new_result_set
+  # api/result_sets/add_new_result_set
   # @param params [Hash] with result_set data and run id.
   # @return [String] with established data
   # Example:
@@ -31,7 +31,7 @@ module ResultSet
     response.body
   end
 
-  # lib/result_sets/update_result_set
+  # api/result_sets/update_result_set
   # @param params [Hash] with result_set data.
   # Example:
   # {:result_set => {:name => "ResultSetName",
@@ -46,7 +46,7 @@ module ResultSet
     response.body
   end
 
-  # lib/result_sets/delete_result_set
+  # api/result_sets/delete_result_set
   # @param params [Hash] with result_set id.
   # Example:
   # {:id => "1"}

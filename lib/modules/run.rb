@@ -1,12 +1,12 @@
 module Resource
 module Run
-  # lib/runs/get_all_runs
+  # api/runs/get_all_runs
   # @return [String] with all runs data. Use +JSON.parse string+ to convert it to hash
   def get_all_runs
     send_get_request('runs/get_all_runs', {:user_email => @username, :user_token => @token})
   end
 
-  # # lib/runs/get_runs_by_param
+  # # api/runs/get_runs_by_param
   # # @return [String] with run data. Use +JSON.parse string+ to convert it to hash
   def get_runs_by_param(param)
     raise('Method get_runs_by_param get hash with one pair keys and values') unless param.keys.size == 1
@@ -21,7 +21,7 @@ module Run
     send_get_request('runs/get_all_result_sets_by_run', {:user_email => @username, :user_token => @token, :param => param})
   end
 
-  # lib/runs/add_new_run
+  # api/runs/add_new_run
   # @param params [Hash] with run data and product id.
   # @return [String] with established data
   # Example:
@@ -36,7 +36,7 @@ module Run
     response.body
   end
 
-  # lib/runs/update_run
+  # api/runs/update_run
   # @param params [Hash] with run data.
   # Example:
   # {:plan => {:name => "Run_name",
@@ -50,7 +50,7 @@ module Run
     response.body
   end
 
-  # lib/runs/delete_run
+  # api/runs/delete_run
   # @param params [Hash] with run id.
   # Example:
   # {:id => "1"}

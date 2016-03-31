@@ -12,7 +12,8 @@ class PalladiumApiShell
   # Write login in not_login file, host in not_host file and token in not_token file. Path to folder take from argument :path, like '/.palladium'
   # Hackers cant rob you then.
   # #params must contains :product_name, :plan_name and :run_name for write result
-  def initialize(params = {})
+  # use param debug: true if you want to see all logs in terminal
+  def initialize(params)
     if !params[:path].nil?
       get_params_from_folder params[:path]
     elsif !((params[:host] || params[:login] || params[:token]).nil?)
@@ -20,35 +21,47 @@ class PalladiumApiShell
     else
       raise("Cant find login, host and token files and arguments. See params: host = #{params[:host]}, login = #{params[:login]}, token = #{params[:token]}, @path = #{params[:path]}")
     end
-    @api = Api.new(params[:host], params[:login], params[:token])
+    @debug = params[:debug] unless params[:debug].nil?
+    init_api_obj(params[:host], params[:login], params[:token])
     @product = get_product_data_by_name(params[:product_name])
-    @product = JSON.parse(@product)
     @plan = get_products_plan_by_name(params[:plan_name])
     if @plan.nil?
-      @plan = @api.add_new_plan({:plan => {:name => plan_name,
-                                           :version => '0'},
-                                 :product_id => @product.keys.first})
-      @plan = JSON.parse(@plan)
+      print_to_log 'Try to create new plan because plan is nil'
+      @plan = create_new_plan(params[:plan_name], '0', @product.keys.first)
     end
     @run = get_plans_run_by_name(params[:run_name])
     if @run.nil?
-      @run = @api.add_new_run({:run => {:name => run_name,
-                                        :version => '0'},
-                               :plan_id => @plan.keys.first})
-      @run = JSON.parse(@run)
+      @run = @api.create_new_run(params[:run_name], '0', @plan.keys.first)
     end
+  end
+
+  def init_api_obj(host, login, token)
+    @api = Api.new(host, login, token)
+    print_to_log 'Init @api obj'
+  end
+
+  def create_new_plan(plan_name, version, product_id)
+    plan = @api.add_new_plan({:plan => {:name => plan_name, :version => "#{version}"}, :product_id => product_id})
+    print_to_log "Create new plan: #{plan}"
+    JSON.parse(plan)
+  end
+
+  def create_new_run(run_name, version, plan_id)
+    run = @api.add_new_run({:run => {:name => run_name, :version => version}, :plan_id => plan_id})
+    print_to_log "Create new run: #{run}"
+    JSON.parse(run)
   end
 
   def get_params_from_folder(path)
     if File.exist?("#{path}/not_host") && File.exist?("#{path}/not_login") && File.exist?("#{path}/not_token")
-      @host = File.read(Dir.home + '/.testrail/not_host').delete("\n")
-      @login = File.read(Dir.home + '/.testrail/not_login').delete("\n")
+      @host = File.read("#{path}/not_host").delete("\n")
+      @login = File.read("#{path}/not_token")
       @token = File.read(Dir.home + '/.testrail/not_token').delete("\n")
     elsif File.exist?("#{path}/host") && File.exist?("#{path}/login") && File.exist?("#{path}/token")
       puts 'Attention!! You use not secure method!! Rename secret files with "not_" prefix'
-      @host = File.read(Dir.home + '/.testrail/host').delete("\n")
-      @login = File.read(Dir.home + '/.testrail/login').delete("\n")
-      @token = File.read(Dir.home + '/.testrail/token').delete("\n")
+      @host = File.read("#{path}/host").delete("\n")
+      @login = File.read("#{path}/login").delete("\n")
+      @token = File.read("#{path}/token").delete("\n")
     end
   end
 
@@ -130,7 +143,9 @@ class PalladiumApiShell
   end
 
   def get_product_data_by_name(product_name)
-    @api.get_products_by_param({name: product_name})
+    product_data = @api.get_products_by_param({name: product_name})
+    print_to_log 'Get product data by name'
+    JSON.parse(product_data)
   end
 
   def get_products_plan_by_name(plan_name)
@@ -139,10 +154,12 @@ class PalladiumApiShell
     unless plans.empty?
       plans.each_pair do |key, value|
         if value['name'] == plan_name
+          print_to_log "Get products plan by name. Plans: #{{key => value}}"
           return {key => value}
         end
       end
     end
+    print_to_log "Get products plan by name. Plans not found"
     nil
   end
 
@@ -152,10 +169,12 @@ class PalladiumApiShell
     unless runs.empty?
       runs.each_pair do |key, value|
         if value['name'] == run_name
+          print_to_log "Get plans run by name. Run: #{{key => value}}"
           return {key => value}
         end
       end
     end
+    print_to_log "Get plans run by name. Runs not found"
     nil
   end
 
@@ -174,5 +193,10 @@ class PalladiumApiShell
       end
     end
     nil
+  end
+
+  def print_to_log(message)
+    return if @debug
+    puts "Palladium Api: #{message}"
   end
 end

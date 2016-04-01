@@ -196,7 +196,7 @@ class PalladiumApiShell
   end
 
   def print_to_log(message)
-    return if @debug
+    return if @debug.nil?
     puts "Palladium Api: #{message}"
   end
 end

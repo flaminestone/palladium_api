@@ -10,4 +10,5 @@ Gem::Specification.new do |s|
   s.homepage    =
       'http://rubygems.org/gems/palladium_api'
   s.license       = 'MIT'
+  s.add_development_dependency 'colorize'
 end

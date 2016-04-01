@@ -1,3 +1,2 @@
-source "https://rubygems.org"
-
-gem 'logging'
+source 'https://rubygems.org'
+gem 'colorize'

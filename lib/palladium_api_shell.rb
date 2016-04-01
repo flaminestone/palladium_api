@@ -1,4 +1,5 @@
 require_relative 'api'
+require 'colorize'
 class PalladiumApiShell
 
   attr_accessor :add_all_suites, :ignore_parameters, :suites_to_add, :search_plan_by_substring, :in_debug
@@ -197,6 +198,6 @@ class PalladiumApiShell
 
   def print_to_log(message)
     return if @debug.nil?
-    puts "Palladium Api: #{message}"
+    puts "Palladium Api: #{message}".colorize(:blue)
   end
 end

@@ -1,17 +1,13 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    little-plugger (1.1.4)
-    logging (2.1.0)
-      little-plugger (~> 1.1)
-      multi_json (~> 1.10)
-    multi_json (1.11.2)
+    colorize (0.7.7)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  logging
+  colorize
 
 BUNDLED WITH
    1.11.2

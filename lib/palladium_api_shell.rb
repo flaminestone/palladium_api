@@ -78,52 +78,16 @@ class PalladiumApiShell
     {run_data:JSON.parse(run_data)['id']}
   end
 
-  def add_result(example)
-    comment = ''
-    exception = example.exception
-    custom_fields = {}
-    custom_fields.merge!(custom_js_error: WebDriver.web_console_error) unless WebDriver.web_console_error.nil?
-    case
-      when @ignore_parameters && (ignored_hash = ignore_case?(example.metadata))
-        comment += "\nTest ignored by #{ ignored_hash }"
-        result = 'Blocked'
-      when example.pending
-        result, comment = parse_pending_comment(example.execution_result[:pending_message])
-        example.set_custom_exception(comment) if result == :failed
-      when exception.to_s.include?('got:'), exception.to_s.include?('expected:')
-        result = 'Failed'
-        comment += "\n" + exception.to_s.gsub('got:', "got:\n").gsub('expected:', "expected:\n")
-      when exception.to_s.include?('to return'), exception.to_s.include?('expected')
-        result = 'Failed'
-        comment += "\n" + exception.to_s.gsub('to return ', "to return:\n").gsub(', got ', "\ngot:\n")
-      when exception.to_s.include?('Service Unavailable')
-        result = 'Service_unavailable'
-        comment += "\n" + exception.to_s
-      when exception.nil?
-        case
-          when @last_case == example.description
-            result = 'Passed_2'
-          when custom_fields.key?(:custom_js_error)
-            result = 'Js_error'
-          else
-            result = 'Passed'
-        end
-        comment += "\nOk"
-      else
-        result = :aborted
-        print_to_log "add result to test #{result}"
-        comment += "\n" + exception.to_s
-        lines = StringHelper.get_string_elements_from_array(exception.backtrace, 'RubymineProjects')
-        lines.each_with_index { |e, i| lines[i] = e.to_s.sub(/.*RubymineProjects\//, '').gsub('`', " '") }
-        custom_fields.merge!(custom_autotest_error_line: lines.join("\r\n"))
+  def add_result(result_set_description, result, comment)
+    status_id = JSON.parse(@api.get_all_statuses).each  do | key, value |
+     key if value == result
     end
-
-    status_id = @api.get_statuses_by_param({name:result})
+    status_id = @api.add_new_status({:status => {:name => "#{result}", :color => "#FFFFFF"}}) if status_id.nil?
     status_id = JSON.parse(status_id).keys.first
-    @result_set = get_runs_result_set_by_name(example.metadata[:description])
+    @result_set = get_runs_result_set_by_name(result_set_description)
 
     if @result_set.nil?
-      @result_set = @api.add_new_result_set({:result_set => {:name => example.metadata[:description],
+      @result_set = @api.add_new_result_set({:result_set => {:name => result_set_description,
                                                                  :version => '0.0.0',
                                                                  :date => Time.now},
                                                  :status_id => status_id,

@@ -1,4 +1,5 @@
 require_relative 'api'
+require 'colorize'
 class PalladiumApiShell
 
   attr_accessor :add_all_suites, :ignore_parameters, :suites_to_add, :search_plan_by_substring, :in_debug
@@ -81,7 +82,7 @@ class PalladiumApiShell
     comment = ''
     exception = example.exception
     custom_fields = {}
-    # custom_fields.merge!(custom_js_error: WebDriver.web_console_error) unless WebDriver.web_console_error.nil?
+    custom_fields.merge!(custom_js_error: WebDriver.web_console_error) unless WebDriver.web_console_error.nil?
     case
       when @ignore_parameters && (ignored_hash = ignore_case?(example.metadata))
         comment += "\nTest ignored by #{ ignored_hash }"
@@ -110,6 +111,7 @@ class PalladiumApiShell
         comment += "\nOk"
       else
         result = :aborted
+        print_to_log "add result to test #{result}"
         comment += "\n" + exception.to_s
         lines = StringHelper.get_string_elements_from_array(exception.backtrace, 'RubymineProjects')
         lines.each_with_index { |e, i| lines[i] = e.to_s.sub(/.*RubymineProjects\//, '').gsub('`', " '") }
@@ -197,6 +199,6 @@ class PalladiumApiShell
 
   def print_to_log(message)
     return if @debug.nil?
-    puts "Palladium Api: #{message}"
+    puts "Palladium Api: #{message}".colorize(:blue)
   end
 end

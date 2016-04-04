@@ -70,8 +70,8 @@ class PalladiumApiShell
     product_data = @api.get_products_by_param({name: product_name})
     product_id = JSON.parse(product_data).keys.first
     plan_data = @api.add_new_plan({:plan => {:name => plan_name,
-                                 :version => '0'},
-                       :product_id => product_id})
+                                             :version => '0'},
+                                   :product_id => product_id})
     run_data = @api.add_new_run({:run => {:name => JSON.parse(plan_data)['name'],
                                           :version => '0.0.0.0'},
                                  :plan_id => JSON.parse(plan_data)['id']})
@@ -83,28 +83,35 @@ class PalladiumApiShell
     JSON.parse(@api.get_all_statuses).each do | key, value |
       status_id = key if value['name'] == result
     end
-    status_id = @api.add_new_status({:status => {:name => "#{result}", :color => "#FFFFFF"}}) if status_id.nil?
-    JSON.parse(status_id)['id']
+    if status_id.nil?
+      status_id = @api.add_new_status({:status => {:name => "#{result}", :color => "#FFFFFF"}})
+      JSON.parse(status_id)['id']
+    else
+      status_id
+    end
   end
 
-  def add_result(result_set_description, result, comment)
-    status_id = add_new_status_if_its_not_found(result)
-    status_id = JSON.parse(status_id)['id']
-    @result_set = get_runs_result_set_by_name(result_set_description)
+  def add_new_result_set_if_its_not_found(result_set_name, status_id)
+    @result_set = get_runs_result_set_by_name(result_set_name)
     if @result_set.nil?
-      @result_set = @api.add_new_result_set({:result_set => {:name => result_set_description,
+      @result_set = @api.add_new_result_set({:result_set => {:name => result_set_name,
                                                              :version => '0.0.0',
                                                              :date => Time.now},
                                              :status_id => status_id,
                                              :run_id => @run.keys.first})
       @result_set = JSON.parse(@result_set)
     end
+    @result_set
+  end
+
+  def add_result(result_set_description, result, comment)
+    status_id = add_new_status_if_its_not_found(result)
+    @result_set = get_runs_result_set_by_name(result_set_description)
+    add_new_result_set_if_its_not_found(result_set_description, status_id)
     response = @api.add_new_result({:result => {:message => comment,
                                                 :author => 'API'},
                                     :result_set_id => @result_set.keys.first,
                                     :status_id => status_id})
-    raise("Status with id #{status_id} is not found. Create it or make active") unless JSON.parse(response)['status_id'].to_s == status_id
-    @last_case = example.description
     if @api.uri.port.nil?
       "#{@api.uri.scheme}://#{@api.uri.host}/result_sets/#{JSON.parse(response)['result_set_id']}/results"
     else

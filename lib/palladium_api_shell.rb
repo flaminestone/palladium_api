@@ -25,7 +25,7 @@ class PalladiumApiShell
     @debug = params[:debug] unless params[:debug].nil?
     init_api_obj(params[:host], params[:login], params[:token])
     @product = get_product_data_by_name(params[:product_name])
-    if @product.nil?
+    if @product.empty?
       @product = add_new_product(params[:product_name])
     end
     @plan = get_products_plan_by_name(params[:plan_name])

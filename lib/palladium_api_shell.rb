@@ -25,6 +25,9 @@ class PalladiumApiShell
     @debug = params[:debug] unless params[:debug].nil?
     init_api_obj(params[:host], params[:login], params[:token])
     @product = get_product_data_by_name(params[:product_name])
+    if @product.nil?
+      @product = add_new_product(params[:product_name])
+    end
     @plan = get_products_plan_by_name(params[:plan_name])
     if @plan.nil?
       print_to_log 'Try to create new plan because plan is nil'
@@ -39,6 +42,10 @@ class PalladiumApiShell
   def init_api_obj(host, login, token)
     @api = Api.new(host, login, token)
     print_to_log 'Init @api obj'
+  end
+
+  def add_new_product(product_name)
+    @api.add_new_product({:product => {:name => "#{product_name}", :version => "Version"}})
   end
 
   def create_new_plan(plan_name, version, product_id)

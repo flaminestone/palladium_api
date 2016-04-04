@@ -18,7 +18,7 @@ class PalladiumApiShell
     if !params[:path].nil?
       get_params_from_folder params[:path]
     elsif !((params[:host] || params[:login] || params[:token]).nil?)
-      @host, @login, @token  = params[:host], params[:login], params[:token]
+      @host, @login, @token = params[:host], params[:login], params[:token]
     else
       raise("Cant find login, host and token files and arguments. See params: host = #{params[:host]}, login = #{params[:login]}, token = #{params[:token]}, @path = #{params[:path]}")
     end
@@ -75,12 +75,12 @@ class PalladiumApiShell
     run_data = @api.add_new_run({:run => {:name => JSON.parse(plan_data)['name'],
                                           :version => '0.0.0.0'},
                                  :plan_id => JSON.parse(plan_data)['id']})
-    {run_data:JSON.parse(run_data)['id']}
+    {run_data: JSON.parse(run_data)['id']}
   end
 
   def add_new_status_if_its_not_found(result)
     status_id = nil
-    JSON.parse(@api.get_all_statuses).each do | key, value |
+    JSON.parse(@api.get_all_statuses).each do |key, value|
       status_id = key if value['name'] == result
     end
     if status_id.nil?

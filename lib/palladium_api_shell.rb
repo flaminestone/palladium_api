@@ -45,7 +45,9 @@ class PalladiumApiShell
   end
 
   def add_new_product(product_name)
-    @api.add_new_product({:product => {:name => "#{product_name}", :version => "Version"}})
+    product = @api.add_new_product({:product => {:name => "#{product_name}", :version => "Version"}})
+    print_to_log "Create new product: #{product}"
+    JSON.parse(product)
   end
 
   def create_new_plan(plan_name, version, product_id)

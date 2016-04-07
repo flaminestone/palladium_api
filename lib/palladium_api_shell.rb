@@ -18,13 +18,16 @@ class PalladiumApiShell
     if !params[:path].nil?
       get_params_from_folder params[:path]
     elsif !((params[:host] || params[:login] || params[:token]).nil?)
-      @host, @login, @token  = params[:host], params[:login], params[:token]
+      @host, @login, @token = params[:host], params[:login], params[:token]
     else
       raise("Cant find login, host and token files and arguments. See params: host = #{params[:host]}, login = #{params[:login]}, token = #{params[:token]}, @path = #{params[:path]}")
     end
     @debug = params[:debug] unless params[:debug].nil?
     init_api_obj(params[:host], params[:login], params[:token])
     @product = get_product_data_by_name(params[:product_name])
+    if @product.empty?
+      @product = add_new_product(params[:product_name])
+    end
     @plan = get_products_plan_by_name(params[:plan_name])
     if @plan.nil?
       print_to_log 'Try to create new plan because plan is nil'
@@ -39,6 +42,12 @@ class PalladiumApiShell
   def init_api_obj(host, login, token)
     @api = Api.new(host, login, token)
     print_to_log 'Init @api obj'
+  end
+
+  def add_new_product(product_name)
+    product = @api.add_new_product({:product => {:name => "#{product_name}", :version => "Version"}})
+    print_to_log "Create new product: #{product}"
+    JSON.parse(product)
   end
 
   def create_new_plan(plan_name, version, product_id)
@@ -70,73 +79,48 @@ class PalladiumApiShell
     product_data = @api.get_products_by_param({name: product_name})
     product_id = JSON.parse(product_data).keys.first
     plan_data = @api.add_new_plan({:plan => {:name => plan_name,
-                                 :version => '0'},
-                       :product_id => product_id})
+                                             :version => '0'},
+                                   :product_id => product_id})
     run_data = @api.add_new_run({:run => {:name => JSON.parse(plan_data)['name'],
                                           :version => '0.0.0.0'},
                                  :plan_id => JSON.parse(plan_data)['id']})
-    {run_data:JSON.parse(run_data)['id']}
+    {run_data: JSON.parse(run_data)['id']}
   end
 
-  def add_result(example)
-    comment = ''
-    exception = example.exception
-    custom_fields = {}
-    custom_fields.merge!(custom_js_error: WebDriver.web_console_error) unless WebDriver.web_console_error.nil?
-    case
-      when @ignore_parameters && (ignored_hash = ignore_case?(example.metadata))
-        comment += "\nTest ignored by #{ ignored_hash }"
-        result = 'Blocked'
-      when example.pending
-        result, comment = parse_pending_comment(example.execution_result[:pending_message])
-        example.set_custom_exception(comment) if result == :failed
-      when exception.to_s.include?('got:'), exception.to_s.include?('expected:')
-        result = 'Failed'
-        comment += "\n" + exception.to_s.gsub('got:', "got:\n").gsub('expected:', "expected:\n")
-      when exception.to_s.include?('to return'), exception.to_s.include?('expected')
-        result = 'Failed'
-        comment += "\n" + exception.to_s.gsub('to return ', "to return:\n").gsub(', got ', "\ngot:\n")
-      when exception.to_s.include?('Service Unavailable')
-        result = 'Service_unavailable'
-        comment += "\n" + exception.to_s
-      when exception.nil?
-        case
-          when @last_case == example.description
-            result = 'Passed_2'
-          when custom_fields.key?(:custom_js_error)
-            result = 'Js_error'
-          else
-            result = 'Passed'
-        end
-        comment += "\nOk"
-      else
-        result = :aborted
-        print_to_log "add result to test #{result}"
-        comment += "\n" + exception.to_s
-        lines = StringHelper.get_string_elements_from_array(exception.backtrace, 'RubymineProjects')
-        lines.each_with_index { |e, i| lines[i] = e.to_s.sub(/.*RubymineProjects\//, '').gsub('`', " '") }
-        custom_fields.merge!(custom_autotest_error_line: lines.join("\r\n"))
+  def add_new_status_if_its_not_found(result)
+    status_id = nil
+    JSON.parse(@api.get_all_statuses).each do |key, value|
+      status_id = key if value['name'] == result
     end
+    if status_id.nil?
+      status_id = @api.add_new_status({:status => {:name => "#{result}", :color => "#FFFFFF"}})
+      JSON.parse(status_id)['id']
+    else
+      status_id
+    end
+  end
 
-    status_id = @api.get_statuses_by_param({name:result})
-    status_id = JSON.parse(status_id).keys.first
-    @result_set = get_runs_result_set_by_name(example.metadata[:description])
-
+  def add_new_result_set_if_its_not_found(result_set_name, status_id)
+    @result_set = get_runs_result_set_by_name(result_set_name)
     if @result_set.nil?
-      @result_set = @api.add_new_result_set({:result_set => {:name => example.metadata[:description],
-                                                                 :version => '0.0.0',
-                                                                 :date => Time.now},
-                                                 :status_id => status_id,
-                                                 :run_id => @run.keys.first})
+      @result_set = @api.add_new_result_set({:result_set => {:name => result_set_name,
+                                                             :version => '0.0.0',
+                                                             :date => Time.now},
+                                             :status_id => status_id,
+                                             :run_id => @run.keys.first})
       @result_set = JSON.parse(@result_set)
     end
+    @result_set
+  end
 
+  def add_result(result_set_description, result, comment)
+    status_id = add_new_status_if_its_not_found(result)
+    @result_set = get_runs_result_set_by_name(result_set_description)
+    add_new_result_set_if_its_not_found(result_set_description, status_id)
     response = @api.add_new_result({:result => {:message => comment,
-                                     :author => 'API'},
-                         :result_set_id => @result_set.keys.first,
-                         :status_id => status_id})
-    raise("Status with id #{status_id} is not found. Create it or make active") unless JSON.parse(response)['status_id'].to_s == status_id
-    @last_case = example.description
+                                                :author => 'API'},
+                                    :result_set_id => @result_set.keys.first,
+                                    :status_id => status_id})
     if @api.uri.port.nil?
       "#{@api.uri.scheme}://#{@api.uri.host}/result_sets/#{JSON.parse(response)['result_set_id']}/results"
     else

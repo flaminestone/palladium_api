@@ -50,5 +50,15 @@ module Status
   def delete_status(params)
     send_post_request('statuses/delete_status', params)
   end
+
+  # api/statuses/status_exist
+  # @param params [Hash] with status name.
+  # Example:
+  # {:name => "passed"}
+  # return 'true' of 'false'
+  def status_exist?(params)
+    response = send_post_request('statuses/status_exist', params)
+    response.body
+  end
 end
 end

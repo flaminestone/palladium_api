@@ -55,10 +55,10 @@ module Status
   # @param params [Hash] with status name.
   # Example:
   # {:name => "passed"}
-  # return 'true' of 'false'
+  # @return "{'status_exists':'true'}" or "{'status_exists':'false'}"
   def status_exist?(params)
     response = send_post_request('statuses/status_exist', params)
-    response.body
+    response.body == '{"status_exist":"true"}'
   end
 end
 end

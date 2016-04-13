@@ -88,16 +88,12 @@ class PalladiumApiShell
   end
 
   def add_new_status_if_its_not_found(result)
-    status_id = nil
-    JSON.parse(@api.get_all_statuses).each do |key, value|
-      status_id = key if value['name'] == result
-    end
-    if status_id.nil?
-      status_id = @api.add_new_status({:status => {:name => "#{result}", :color => "#FFFFFF"}})
-      JSON.parse(status_id)['id']
-    else
-      status_id
-    end
+  unless @api.status_exist?(:name => result)
+    status_id = @api.add_new_status({:status => {:name => "#{result}", :color => "#FFFFFF"}})
+    return JSON.parse(status_id)['id']
+  end
+  status_id = @api.get_statuses_by_param(:name => "#{result}")
+  JSON.parse(status_id).keys.first
   end
 
   def add_new_result_set_if_its_not_found(result_set_name, status_id)

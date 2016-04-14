@@ -112,7 +112,6 @@ class PalladiumApiShell
 
   def add_result(result_set_description, result, comment)
     status_id = add_new_status_if_its_not_found(result)
-    @result_set = get_runs_result_set_by_name(result_set_description)
     add_new_result_set_if_its_not_found(result_set_description, status_id)
     response = @api.add_new_result({:result => {:message => comment,
                                                 :author => 'API'},

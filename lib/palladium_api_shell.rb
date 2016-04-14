@@ -30,12 +30,12 @@ class PalladiumApiShell
       @product = {@product['id'] => @product}
     end
     @plan = get_products_plan_by_name(params[:plan_name])
-    if @plan.nil?
+    if @plan.empty?
       print_to_log 'Try to create new plan because plan is nil'
       @plan = create_new_plan(params[:plan_name], '0', @product.keys.first)
     end
     @run = get_plans_run_by_name(params[:run_name])
-    if @run.nil?
+    if @run.empty?
       @run = create_new_run(params[:run_name], '0', @plan.keys.first)
     end
   end
@@ -133,26 +133,12 @@ class PalladiumApiShell
 
   def get_products_plan_by_name(plan_name)
     plans = @api.get_plans_by_param({product_id: @product.keys.first, name: plan_name})
-    if plans.nil?
-      print_to_log "Get products plan by name. Plans not found"
-      return nil
-    end
     JSON.parse(plans)
   end
 
   def get_plans_run_by_name(run_name)
-    runs = @api.get_all_runs_by_plan({:id => @plan.keys.first})
-    runs = JSON.parse(runs)
-    unless runs.empty?
-      runs.each_pair do |key, value|
-        if value['name'] == run_name
-          print_to_log "Get plans run by name. Run: #{{key => value}}"
-          return {key => value}
-        end
-      end
-    end
-    print_to_log "Get plans run by name. Runs not found"
-    nil
+    runs = @api.get_runs_by_param({:plan_id => @plan.keys.first, :name => run_name})
+    JSON.parse(runs)
   end
 
   def get_string_elements_from_array(array, parameter, full_equality = false)

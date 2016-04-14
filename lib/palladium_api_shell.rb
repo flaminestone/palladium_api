@@ -99,7 +99,7 @@ class PalladiumApiShell
 
   def add_new_result_set_if_its_not_found(result_set_name, status_id)
     @result_set = get_runs_result_set_by_name(result_set_name)
-    if @result_set.nil?
+    if @result_set.empty?
       @result_set = @api.add_new_result_set({:result_set => {:name => result_set_name,
                                                              :version => '0.0.0',
                                                              :date => Time.now},

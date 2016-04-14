@@ -27,6 +27,7 @@ class PalladiumApiShell
     @product = get_product_data_by_name(params[:product_name])
     if @product.empty?
       @product = add_new_product(params[:product_name])
+      @product = {@product['id'] => @product}
     end
     @plan = get_products_plan_by_name(params[:plan_name])
     if @plan.nil?
@@ -131,18 +132,12 @@ class PalladiumApiShell
   end
 
   def get_products_plan_by_name(plan_name)
-    plans = @api.get_all_plans_by_product({:id => @product.keys.first})
-    plans = JSON.parse(plans)
-    unless plans.empty?
-      plans.each_pair do |key, value|
-        if value['name'] == plan_name
-          print_to_log "Get products plan by name. Plans: #{{key => value}}"
-          return {key => value}
-        end
-      end
+    plans = @api.get_plans_by_param({product_id: @product.keys.first, name: plan_name})
+    if plans.nil?
+      print_to_log "Get products plan by name. Plans not found"
+      return nil
     end
-    print_to_log "Get products plan by name. Plans not found"
-    nil
+    JSON.parse(plans)
   end
 
   def get_plans_run_by_name(run_name)

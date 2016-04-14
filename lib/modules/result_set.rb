@@ -9,9 +9,11 @@ module ResultSet
   # api/result_sets/get_result_set_by_param
   # @return [String] with result_set data. Use +JSON.parse string+ to convert it to hash
   def get_result_set_by_param(param)
-    raise('Method result_set get hash with one pair keys and values') unless param.keys.size == 1
-    param = {param.keys.first.to_s => param.values.first.to_s}
-    send_get_request('result_sets/get_result_sets_by_param', {:user_email => @username, :user_token => @token, :param => param})
+    params_to_str = {}
+    param.each_key do |key|
+      params_to_str.merge!({"#{key}" => "#{param[key]}"})
+    end
+    send_get_request('result_sets/get_result_sets_by_param', {:user_email => @username, :user_token => @token, :param => params_to_str})
   end
   alias_method :get_result_sets_by_param, :get_result_set_by_param
 

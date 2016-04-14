@@ -146,16 +146,8 @@ class PalladiumApiShell
   end
 
   def get_runs_result_set_by_name(result_set_name)
-    result_sets = @api.get_all_result_sets_by_run({:id => @run.keys.first})
-    result_sets = JSON.parse(result_sets)
-    unless result_sets.empty?
-      result_sets.each_pair do |key, value|
-        if value['name'] == result_set_name
-          return {key => value}
-        end
-      end
-    end
-    nil
+    result_sets = @api.get_result_set_by_param({:run_id => @run.keys.first, :name => result_set_name})
+    JSON.parse(result_sets)
   end
 
   def print_to_log(message)

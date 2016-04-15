@@ -117,7 +117,7 @@ class PalladiumApiShell
                                                 :author => 'API'},
                                     :result_set_id => @result_set.keys.first,
                                     :status_id => status_id,
-                                    :plan_id => @plan.id})
+                                    :plan_id => @plan.keys.first})
     if @api.uri.port.nil?
       "#{@api.uri.scheme}://#{@api.uri.host}/result_sets/#{JSON.parse(response)['result_set_id']}/results"
     else

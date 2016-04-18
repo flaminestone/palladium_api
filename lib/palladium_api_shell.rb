@@ -104,7 +104,8 @@ class PalladiumApiShell
                                                              :version => '0.0.0',
                                                              :date => Time.now},
                                              :status_id => status_id,
-                                             :run_id => @run.keys.first})
+                                             :run_id => @run.keys.first,
+                                             :plan_id => @plan.keys.first})
       @result_set = JSON.parse(@result_set)
     end
     @result_set

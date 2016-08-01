@@ -27,14 +27,15 @@ class PalladiumApiShell
     @product = get_product_data_by_name(params[:product_name])
     if @product.empty?
       @product = add_new_product(params[:product_name])
+      @product = {@product['id'] => @product}
     end
     @plan = get_products_plan_by_name(params[:plan_name])
-    if @plan.nil?
+    if @plan.empty?
       print_to_log 'Try to create new plan because plan is nil'
       @plan = create_new_plan(params[:plan_name], '0', @product.keys.first)
     end
     @run = get_plans_run_by_name(params[:run_name])
-    if @run.nil?
+    if @run.empty?
       @run = create_new_run(params[:run_name], '0', @plan.keys.first)
     end
   end
@@ -88,26 +89,23 @@ class PalladiumApiShell
   end
 
   def add_new_status_if_its_not_found(result)
-    status_id = nil
-    JSON.parse(@api.get_all_statuses).each do |key, value|
-      status_id = key if value['name'] == result
-    end
-    if status_id.nil?
-      status_id = @api.add_new_status({:status => {:name => "#{result}", :color => "#FFFFFF"}})
-      JSON.parse(status_id)['id']
-    else
-      status_id
-    end
+  unless @api.status_exist?(:name => result)
+    status_id = @api.add_new_status({:status => {:name => "#{result}", :color => "#FFFFFF"}})
+    return JSON.parse(status_id)['id']
+  end
+  status_id = @api.get_statuses_by_param(:name => "#{result}")
+  JSON.parse(status_id).keys.first
   end
 
   def add_new_result_set_if_its_not_found(result_set_name, status_id)
     @result_set = get_runs_result_set_by_name(result_set_name)
-    if @result_set.nil?
+    if @result_set.empty?
       @result_set = @api.add_new_result_set({:result_set => {:name => result_set_name,
                                                              :version => '0.0.0',
                                                              :date => Time.now},
                                              :status_id => status_id,
-                                             :run_id => @run.keys.first})
+                                             :run_id => @run.keys.first,
+                                             :plan_id => @plan.keys.first})
       @result_set = JSON.parse(@result_set)
     end
     @result_set
@@ -115,12 +113,12 @@ class PalladiumApiShell
 
   def add_result(result_set_description, result, comment)
     status_id = add_new_status_if_its_not_found(result)
-    @result_set = get_runs_result_set_by_name(result_set_description)
     add_new_result_set_if_its_not_found(result_set_description, status_id)
     response = @api.add_new_result({:result => {:message => comment,
                                                 :author => 'API'},
                                     :result_set_id => @result_set.keys.first,
-                                    :status_id => status_id})
+                                    :status_id => status_id,
+                                    :plan_id => @plan.keys.first})
     if @api.uri.port.nil?
       "#{@api.uri.scheme}://#{@api.uri.host}/result_sets/#{JSON.parse(response)['result_set_id']}/results"
     else
@@ -135,33 +133,13 @@ class PalladiumApiShell
   end
 
   def get_products_plan_by_name(plan_name)
-    plans = @api.get_all_plans_by_product({:id => @product.keys.first})
-    plans = JSON.parse(plans)
-    unless plans.empty?
-      plans.each_pair do |key, value|
-        if value['name'] == plan_name
-          print_to_log "Get products plan by name. Plans: #{{key => value}}"
-          return {key => value}
-        end
-      end
-    end
-    print_to_log "Get products plan by name. Plans not found"
-    nil
+    plans = @api.get_plans_by_param({product_id: @product.keys.first, name: plan_name})
+    JSON.parse(plans)
   end
 
   def get_plans_run_by_name(run_name)
-    runs = @api.get_all_runs_by_plan({:id => @plan.keys.first})
-    runs = JSON.parse(runs)
-    unless runs.empty?
-      runs.each_pair do |key, value|
-        if value['name'] == run_name
-          print_to_log "Get plans run by name. Run: #{{key => value}}"
-          return {key => value}
-        end
-      end
-    end
-    print_to_log "Get plans run by name. Runs not found"
-    nil
+    runs = @api.get_runs_by_param({:plan_id => @plan.keys.first, :name => run_name})
+    JSON.parse(runs)
   end
 
   def get_string_elements_from_array(array, parameter, full_equality = false)
@@ -169,16 +147,8 @@ class PalladiumApiShell
   end
 
   def get_runs_result_set_by_name(result_set_name)
-    result_sets = @api.get_all_result_sets_by_run({:id => @run.keys.first})
-    result_sets = JSON.parse(result_sets)
-    unless result_sets.empty?
-      result_sets.each_pair do |key, value|
-        if value['name'] == result_set_name
-          return {key => value}
-        end
-      end
-    end
-    nil
+    result_sets = @api.get_result_set_by_param({:run_id => @run.keys.first, :name => result_set_name})
+    JSON.parse(result_sets)
   end
 
   def print_to_log(message)

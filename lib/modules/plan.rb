@@ -9,9 +9,11 @@ module Plan
   # api/plans/get_plans_by_param
   # @return [String] with plans data. Use +JSON.parse string+ to convert it to hash
   def get_plans_by_param(param)
-    raise('Method get_plans_by_param get hash with one pair keys and values') unless param.keys.size == 1
-    param = {param.keys.first.to_s => param.values.first.to_s}
-    send_get_request('plans/get_plans_by_param', {:user_email => @username, :user_token => @token, :param => param})
+    params_to_str = {}
+    param.each_key do |key|
+      params_to_str.merge!({"#{key}" => "#{param[key]}"})
+    end
+    send_get_request('plans/get_plans_by_param', {:user_email => @username, :user_token => @token, :param => params_to_str})
   end
   alias_method :get_plan_by_param, :get_plans_by_param
 
